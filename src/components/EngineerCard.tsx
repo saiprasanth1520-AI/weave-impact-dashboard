@@ -24,9 +24,9 @@ const DIMENSION_ICONS = {
   consistency: CalendarCheck,
 };
 
-function ScoreBar({ value, label, color }: { value: number; label: string; color: string }) {
+function ScoreBar({ value, label, color, description }: { value: number; label: string; color: string; description: string }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2" title={description}>
       <span className="text-xs text-surface-500 w-[110px] shrink-0 text-right">{label}</span>
       <div className="flex-1 h-2.5 bg-surface-100 rounded-full overflow-hidden">
         <div
@@ -34,7 +34,7 @@ function ScoreBar({ value, label, color }: { value: number; label: string; color
           style={{ width: `${value}%` }}
         />
       </div>
-      <span className="text-xs font-medium text-surface-600 w-8 text-right">{value}</span>
+      <span className="text-xs font-medium text-surface-600 w-14 text-right">{value}th pctl</span>
     </div>
   );
 }
@@ -102,9 +102,9 @@ export function EngineerCard({ profile, rank, isSelected, onClick }: EngineerCar
         </div>
 
         {/* Overall score */}
-        <div className="text-right shrink-0">
-          <div className="text-xl font-bold text-surface-800">{profile.overallScore}</div>
-          <div className="text-[10px] text-surface-400 uppercase tracking-wider">overall</div>
+        <div className="text-right shrink-0" title="Average percentile rank across all 5 dimensions, relative to all active engineers">
+          <div className="text-xl font-bold text-surface-800">{profile.overallScore}<span className="text-xs font-normal text-surface-400">th</span></div>
+          <div className="text-[10px] text-surface-400 uppercase tracking-wider">percentile</div>
         </div>
 
         {/* Expand/collapse icon */}
@@ -124,6 +124,7 @@ export function EngineerCard({ profile, rank, isSelected, onClick }: EngineerCar
                 value={dim.normalized}
                 label={dim.label}
                 color={color}
+                description={dim.description}
               />
             ))}
           </div>
