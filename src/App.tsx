@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import githubData from './data/github-data.json';
-import { calculateImpact, getWeeklyActivity, getTopPRs, type GitHubData } from './utils/scoring';
+import { calculateImpact, getWeeklyActivity, getTopPRs, countBots, type GitHubData } from './utils/scoring';
 import { EngineerCard } from './components/EngineerCard';
 import { RadarComparison } from './components/RadarComparison';
 import { MethodologyPanel } from './components/MethodologyPanel';
@@ -13,6 +13,7 @@ const TOP_N = 5;
 function App() {
   const data = githubData as GitHubData;
   const profiles = useMemo(() => calculateImpact(data), [data]);
+  const botCount = useMemo(() => countBots(data), [data]);
   const topEngineers = profiles.slice(0, TOP_N);
 
   const [selectedEngineer, setSelectedEngineer] = useState<string | null>(null);
@@ -35,6 +36,7 @@ function App() {
       <Header
         metadata={data.metadata}
         totalEngineers={profiles.length}
+        totalBots={botCount}
         onToggleMethodology={() => setShowMethodology(!showMethodology)}
         showMethodology={showMethodology}
       />

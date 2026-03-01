@@ -19,7 +19,7 @@ const DIM_SHORT_LABELS: Record<string, string> = {
   shippingVelocity: 'Shipping',
   reviewLeadership: 'Reviews',
   collaborationReach: 'Collab',
-  codebaseStewardship: 'Stewardship',
+  codebaseStewardship: 'Breadth',
   consistency: 'Consistency',
 };
 

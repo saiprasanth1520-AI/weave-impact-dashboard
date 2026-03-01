@@ -142,6 +142,16 @@ function getWeekKey(dateStr: string): string {
   return `${d.getFullYear()}-W${weekNum}`;
 }
 
+/** Count bot accounts found in the data */
+export function countBots(data: GitHubData): number {
+  const allUsers = new Set<string>();
+  data.pullRequests.forEach(pr => {
+    allUsers.add(pr.author);
+    pr.reviews.forEach(r => allUsers.add(r.reviewer));
+  });
+  return [...allUsers].filter(isBot).length;
+}
+
 export function calculateImpact(data: GitHubData): EngineerProfile[] {
   const prs = data.pullRequests.filter(pr => !isBot(pr.author));
 
@@ -246,7 +256,7 @@ export function calculateImpact(data: GitHubData): EngineerProfile[] {
   }
   const collabNorm = normalizeScores(collabRaw);
 
-  // --- DIMENSION 4: Codebase Stewardship ---
+  // --- DIMENSION 4: Codebase Breadth ---
   // Since we don't have file paths in our data (to keep API calls reasonable),
   // we use changedFiles breadth and PR label diversity as proxies
   const stewardshipRaw = new Map<string, number>();
@@ -313,30 +323,53 @@ export function calculateImpact(data: GitHubData): EngineerProfile[] {
     const prsMerged = prs.filter(p => p.author === login).length;
     const reviewsGiven = reviewBreakdown.get(login)?.totalReviews || 0;
 
-    // Generate human-readable highlights
+    // Generate comparative, insight-driven highlights (not just raw counts)
     const highlights: string[] = [];
     const dims = [
       { name: 'Shipping', score: shipping },
-      { name: 'Review', score: review },
+      { name: 'Reviews', score: review },
       { name: 'Collaboration', score: collab },
       { name: 'Stewardship', score: stewardship },
       { name: 'Consistency', score: consistency },
     ];
-    const topDim = dims.sort((a, b) => b.score - a.score)[0];
+    const sortedDims = [...dims].sort((a, b) => b.score - a.score);
+    const topDim = sortedDims[0];
+    const weakDim = sortedDims[sortedDims.length - 1];
 
-    if (prsMerged > 0) {
-      highlights.push(`Merged ${prsMerged} PRs in this period`);
-    }
-    if (reviewsGiven > 0) {
-      highlights.push(`Reviewed ${reviewsGiven} PRs from others`);
-    }
+    // Top strength
     if (topDim.score >= 80) {
-      highlights.push(`Strongest dimension: ${topDim.name} (top ${100 - topDim.score}%)`);
+      highlights.push(`Top ${100 - topDim.score}% in ${topDim.name}`);
     }
-    const cb = consistencyBreakdown.get(login)!;
-    if (cb.activeWeeks > 0) {
-      highlights.push(`Active ${cb.activeWeeks} of ${cb.totalWeeks} weeks`);
+
+    // Key differentiator — what makes them stand out
+    const rb = reviewBreakdown.get(login);
+    if (rb && rb.substantiveReviews > 0 && rb.totalReviews > 0) {
+      const substPct = Math.round((rb.substantiveReviews / rb.totalReviews) * 100);
+      if (substPct >= 70) {
+        highlights.push(`${substPct}% of reviews are substantive (with comments)`);
+      }
     }
+
+    const cb = collabBreakdown.get(login);
+    if (cb && cb.totalConnections >= 20) {
+      highlights.push(`Works with ${cb.totalConnections} unique teammates`);
+    }
+
+    const conb = consistencyBreakdown.get(login);
+    if (conb && conb.activeWeeks >= totalWeeks * 0.8) {
+      highlights.push(`Active ${conb.activeWeeks} of ${conb.totalWeeks} weeks (highly consistent)`);
+    } else if (conb && conb.activeWeeks > 0) {
+      highlights.push(`Active ${conb.activeWeeks} of ${conb.totalWeeks} weeks`);
+    }
+
+    // Weakness indicator (only if there's a clear gap)
+    if (topDim.score - weakDim.score >= 40) {
+      highlights.push(`Growth area: ${weakDim.name} (${weakDim.score}th pctl)`);
+    }
+
+    // Summary stats
+    if (prsMerged > 0) highlights.push(`${prsMerged} PRs merged`);
+    if (reviewsGiven > 0) highlights.push(`${reviewsGiven} reviews given`);
 
     profiles.push({
       login,
@@ -366,8 +399,8 @@ export function calculateImpact(data: GitHubData): EngineerProfile[] {
         codebaseStewardship: {
           raw: stewardshipRaw.get(login) || 0,
           normalized: stewardship,
-          label: 'Codebase Stewardship',
-          description: 'Breadth of ownership across the codebase',
+          label: 'Codebase Breadth',
+          description: 'How widely they work across the codebase (files changed + PR label diversity)',
           breakdown: stewardshipBreakdown.get(login) || {},
         },
         consistency: {
