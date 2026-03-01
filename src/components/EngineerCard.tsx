@@ -55,6 +55,11 @@ export function EngineerCard({ profile, rank, isSelected, onClick }: EngineerCar
         isSelected ? 'border-primary-400 shadow-md ring-1 ring-primary-200' : 'border-surface-200 hover:border-surface-300 hover:shadow-sm'
       }`}
       onClick={onClick}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
+      role="button"
+      tabIndex={0}
+      aria-expanded={isSelected}
+      aria-label={`${profile.login}, rank ${rank}, ${profile.overallScore}th percentile overall`}
     >
       {/* Main row — always visible */}
       <div className="flex items-center gap-3 px-4 py-3">

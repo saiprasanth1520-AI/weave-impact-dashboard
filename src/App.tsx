@@ -68,7 +68,7 @@ function App() {
           {selectedProfile && weeklyData && topPRs && (
             <div className="space-y-4">
               <WeeklyTimeline data={weeklyData} login={selectedProfile.login} />
-              <TopPRsList prs={topPRs} />
+              <TopPRsList prs={topPRs} repo={data.metadata.repo} />
             </div>
           )}
         </div>
@@ -77,7 +77,7 @@ function App() {
   );
 }
 
-function TopPRsList({ prs }: { prs: ReturnType<typeof getTopPRs> }) {
+function TopPRsList({ prs, repo }: { prs: ReturnType<typeof getTopPRs>; repo: string }) {
   if (prs.length === 0) return null;
 
   return (
@@ -87,15 +87,15 @@ function TopPRsList({ prs }: { prs: ReturnType<typeof getTopPRs> }) {
         {prs.map(pr => (
           <li key={pr.number} className="text-xs">
             <a
-              href={`https://github.com/PostHog/posthog/pull/${pr.number}`}
+              href={`https://github.com/${repo}/pull/${pr.number}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary-600 hover:text-primary-800 hover:underline font-medium"
             >
               #{pr.number}
             </a>
-            <span className="text-surface-600 ml-1.5">{pr.title}</span>
-            <span className="text-surface-400 ml-1.5">
+            <span className="text-surface-600 ml-1.5 line-clamp-1">{pr.title}</span>
+            <span className="text-surface-400 ml-1.5 whitespace-nowrap">
               +{pr.additions.toLocaleString()} / -{pr.deletions.toLocaleString()}
             </span>
           </li>
