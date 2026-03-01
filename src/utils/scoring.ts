@@ -364,7 +364,7 @@ export function calculateImpact(data: GitHubData): EngineerProfile[] {
 
     // Weakness indicator (only if there's a clear gap)
     if (topDim.score - weakDim.score >= 40) {
-      highlights.push(`Growth area: ${weakDim.name} (${weakDim.score}th pctl)`);
+      highlights.push(`Growth area: ${weakDim.name} (${weakDim.score} pctl)`);
     }
 
     // Summary stats

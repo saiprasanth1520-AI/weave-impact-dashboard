@@ -8,6 +8,12 @@ interface EngineerCardProps {
   onClick: () => void;
 }
 
+function ordinalSuffix(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return s[(v - 20) % 10] || s[v] || s[0];
+}
+
 const RANK_COLORS = [
   'bg-amber-100 text-amber-800 border-amber-300',
   'bg-slate-100 text-slate-700 border-slate-300',
@@ -34,7 +40,7 @@ function ScoreBar({ value, label, color, description }: { value: number; label: 
           style={{ width: `${value}%` }}
         />
       </div>
-      <span className="text-xs font-medium text-surface-600 w-14 text-right">{value}th pctl</span>
+      <span className="text-xs font-medium text-surface-600 w-14 text-right">{value}{ordinalSuffix(value)} pctl</span>
     </div>
   );
 }
@@ -59,7 +65,7 @@ export function EngineerCard({ profile, rank, isSelected, onClick }: EngineerCar
       role="button"
       tabIndex={0}
       aria-expanded={isSelected}
-      aria-label={`${profile.login}, rank ${rank}, ${profile.overallScore}th percentile overall`}
+      aria-label={`${profile.login}, rank ${rank}, ${profile.overallScore}${ordinalSuffix(profile.overallScore)} percentile overall`}
     >
       {/* Main row — always visible */}
       <div className="flex items-center gap-3 px-4 py-3">
@@ -108,7 +114,7 @@ export function EngineerCard({ profile, rank, isSelected, onClick }: EngineerCar
 
         {/* Overall score */}
         <div className="text-right shrink-0" title="Average percentile rank across all 5 dimensions, relative to all active engineers">
-          <div className="text-xl font-bold text-surface-800">{profile.overallScore}<span className="text-xs font-normal text-surface-400">th</span></div>
+          <div className="text-xl font-bold text-surface-800">{profile.overallScore}<span className="text-xs font-normal text-surface-400">{ordinalSuffix(profile.overallScore)}</span></div>
           <div className="text-[10px] text-surface-400 uppercase tracking-wider">percentile</div>
         </div>
 
